@@ -142,37 +142,24 @@ export default function Home() {
         watchedCount={watchedCount}
       />
 
-      {loading ? (
+      {loading && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
           <div className="spinner"></div>
           <p className="mt-4">Loading your movies...</p>
         </div>
-      ) : (
-        <MovieList 
-          movies={displayMovies} 
-          onToggleWatched={handleToggleWatched} 
-          onUpdateRating={handleUpdateRating}
-          onDelete={handleDelete}
-        />
       )}
 
-      {/* Basic spinner styles directly injected for simplicity */}
-      <style jsx>{`
-        .spinner {
-          width: 40px;
-          height: 40px;
-          margin: 0 auto;
-          border: 4px solid rgba(255, 255, 255, 0.1);
-          border-left-color: var(--accent-primary);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .pb-12 { padding-bottom: 3rem; }
-        .pt-8 { padding-top: 2rem; }
-      `}</style>
+      {
+        !loading && (
+          <MovieList 
+            movies={displayMovies} 
+            onToggleWatched={handleToggleWatched} 
+            onUpdateRating={handleUpdateRating}
+            onDelete={handleDelete}
+          />
+        )
+      }
+
     </main>
   );
 }
