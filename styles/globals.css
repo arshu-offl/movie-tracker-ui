@@ -1,0 +1,167 @@
+/* ui/styles/globals.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;800&display=swap");
+
+:root {
+  --bg-dark: #0f111a;
+  --bg-darker: #090a0f;
+  --bg-panel: rgba(25, 28, 41, 0.6);
+  --accent-primary: #8a2be2; /* Blue Violet */
+  --accent-secondary: #ff007f; /* Neon Pink */
+  --accent-tertiary: #00d2ff; /* Neon Blue */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a5b1;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(25, 28, 41, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --transition-speed: 0.3s;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  /* subtle deep gradient background */
+  background: radial-gradient(
+    circle at top right,
+    #1a1025,
+    var(--bg-dark) 40%,
+    var(--bg-darker) 100%
+  );
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Typography elements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Outfit", sans-serif;
+  margin-bottom: 0.5rem;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
+}
+
+/* Gradients */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--accent-tertiary),
+    var(--accent-secondary),
+    var(--accent-primary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Interactive elements */
+button,
+.clickable {
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  font-family: "Inter", sans-serif;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+  font-family: "Inter", sans-serif;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color var(--transition-speed);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent-secondary);
+}
+
+/* Utilities */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.flex {
+  display: flex;
+}
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-center {
+  justify-content: center;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-4 {
+  gap: 1rem;
+}
+.gap-6 {
+  gap: 1.5rem;
+}
+.gap-8 {
+  gap: 2rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-8 {
+  margin-top: 2rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mb-8 {
+  margin-bottom: 2rem;
+}

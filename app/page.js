@@ -1,65 +1,178 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import { fetchMovies, addMovie, updateMovie, deleteMovie } from '../lib/api';
+import MovieList from '../components/MovieList';
+import AddMovieForm from '../components/AddMovieForm';
+import FilterSortPanel from '../components/FilterSortPanel';
 
 export default function Home() {
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [filter, setFilter] = useState('all'); // 'all', 'watched', 'unwatched'
+  const [sort, setSort] = useState('default'); // 'default', 'alpha_asc', 'alpha_desc', 'rating_desc'
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadMovies();
+  }, []);
+
+  const loadMovies = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchMovies();
+      setMovies(data);
+    } catch (err) {
+      setError('Failed to connect to the movie database. Is the API server running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMovie = async (newMovieParams) => {
+    try {
+      const added = await addMovie(newMovieParams);
+      // Add to beginning of list
+      setMovies(prev => [added, ...prev]);
+    } catch (err) {
+      alert("Failed to add movie");
+    }
+  };
+
+  const handleToggleWatched = async (id, watchedStatus) => {
+    try {
+      // Optmistic update
+      setMovies(prev => prev.map(m => m.id === id ? { ...m, watched: watchedStatus } : m));
+      // Backend update
+      await updateMovie(id, { watched: watchedStatus });
+    } catch (err) {
+      // Revert on error
+      loadMovies();
+      alert("Failed to update status");
+    }
+  };
+
+  const handleUpdateRating = async (id, rating) => {
+    try {
+      // Optmistic update
+      setMovies(prev => prev.map(m => m.id === id ? { ...m, rating } : m));
+      // Backend update
+      await updateMovie(id, { rating });
+    } catch (err) {
+      // Revert on error
+      loadMovies();
+      alert("Failed to update rating");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      if(!confirm("Are you sure you want to delete this movie?")) return;
+      setMovies(prev => prev.filter(m => m.id !== id));
+      await deleteMovie(id);
+    } catch (err) {
+      loadMovies();
+      alert("Failed to delete movie");
+    }
+  }
+
+  // Derive counts
+  const totalMovies = movies.length;
+  const watchedCount = movies.filter(m => m.watched).length;
+
+  // Filter and sort the rendered list
+  const displayMovies = useMemo(() => {
+    let result = [...movies];
+
+    if (filter === 'watched') result = result.filter(m => m.watched);
+    if (filter === 'unwatched') result = result.filter(m => !m.watched);
+
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(m => m.title.toLowerCase().includes(lowerQuery));
+    }
+
+    switch (sort) {
+      case 'alpha_asc':
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'alpha_desc':
+        result.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case 'rating_desc':
+        result.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'default':
+      default:
+        // Keep order from backend (newest first usually if we unshift above)
+        break;
+    }
+    return result;
+  }, [movies, filter, sort, searchQuery]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="container pb-12 pt-8">
+      <header className="flex-col items-center justify-center mb-12 text-center">
+        <h1 className="text-gradient" style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>
+          Surya&apos;s Movie Tracker
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', marginBottom: "1em"}}>
+          Your personal watchlist built with love ❤︎⁠
+        </p>
+      </header>
+
+      {error && (
+        <div style={{ background: 'rgba(255,0,0,0.1)', color: '#ff4d4d', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center' }}>
+          {error}
+        </div>
+      )}
+
+      {/* <AddMovieForm onAdd={handleAddMovie} /> */}
+
+      <FilterSortPanel 
+        filter={filter} 
+        setFilter={setFilter} 
+        sort={sort} 
+        setSort={setSort} 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        totalMovies={totalMovies}
+        watchedCount={watchedCount}
+      />
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+          <div className="spinner"></div>
+          <p className="mt-4">Loading your movies...</p>
+        </div>
+      ) : (
+        <MovieList 
+          movies={displayMovies} 
+          onToggleWatched={handleToggleWatched} 
+          onUpdateRating={handleUpdateRating}
+          onDelete={handleDelete}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+
+      {/* Basic spinner styles directly injected for simplicity */}
+      <style jsx>{`
+        .spinner {
+          width: 40px;
+          height: 40px;
+          margin: 0 auto;
+          border: 4px solid rgba(255, 255, 255, 0.1);
+          border-left-color: var(--accent-primary);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .pb-12 { padding-bottom: 3rem; }
+        .pt-8 { padding-top: 2rem; }
+      `}</style>
+    </main>
   );
 }
