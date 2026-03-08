@@ -129,7 +129,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* <AddMovieForm onAdd={handleAddMovie} /> */}
+      <AddMovieForm onAdd={handleAddMovie} /> 
 
       <FilterSortPanel 
         filter={filter} 
